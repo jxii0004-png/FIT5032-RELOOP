@@ -1,9 +1,11 @@
 <script setup>
 import { reactive, ref } from "vue";
+import { wasteItems } from "../data/wasteItems";
 
 const itemName = ref("");
 const condition = ref("");
-const submitted = ref(false);
+const result = ref(null);
+const notFound = ref(false);
 
 const errors = reactive({
   itemName: "",
@@ -13,7 +15,8 @@ const errors = reactive({
 function validateForm() {
   errors.itemName = "";
   errors.condition = "";
-  submitted.value = false;
+  result.value = null;
+  notFound.value = false;
 
   const cleanedItemName = itemName.value.trim();
 
@@ -29,8 +32,22 @@ function validateForm() {
     errors.condition = "Please select the condition of the item.";
   }
 
-  if (!errors.itemName && !errors.condition) {
-    submitted.value = true;
+  if (errors.itemName || errors.condition) {
+    return;
+  }
+
+  const searchTerm = cleanedItemName.toLowerCase();
+
+  const matchedItem = wasteItems.find((item) => item.names.includes(searchTerm));
+
+  if (matchedItem) {
+    result.value = {
+      displayName: matchedItem.displayName,
+      category: matchedItem.category,
+      recommendation: matchedItem.options[condition.value],
+    };
+  } else {
+    notFound.value = true;
   }
 }
 </script>
@@ -91,10 +108,22 @@ function validateForm() {
               <button type="submit" class="btn btn-success w-100">Find the Best Option</button>
             </form>
 
-            <div v-if="submitted" class="alert alert-success mt-4 mb-0" role="alert">
-              Form submitted successfully for
-              <strong>{{ itemName }}</strong
-              >.
+            <div v-if="result" class="card bg-light border-success mt-4">
+              <div class="card-body">
+                <p class="text-success fw-semibold mb-1">Recommended next step</p>
+
+                <h3 class="h5">{{ result.displayName }}</h3>
+
+                <p class="mb-2"><strong>Category:</strong> {{ result.category }}</p>
+
+                <p class="mb-0">
+                  {{ result.recommendation }}
+                </p>
+              </div>
+            </div>
+
+            <div v-if="notFound" class="alert alert-warning mt-4 mb-0" role="alert">
+              We could not find this item. Try TV, mobile phone, clothing, battery or furniture.
             </div>
           </div>
         </div>
