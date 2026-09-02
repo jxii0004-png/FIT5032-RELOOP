@@ -1,11 +1,43 @@
 <script setup>
-import { reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { wasteItems } from "../data/wasteItems";
 
 const itemName = ref("");
 const condition = ref("");
 const result = ref(null);
 const notFound = ref(false);
+const searchHistory = ref([]);
+
+onMounted(() => {
+  const savedHistory = localStorage.getItem("reloopSearchHistory");
+
+  if (savedHistory) {
+    try {
+      searchHistory.value = JSON.parse(savedHistory);
+    } catch {
+      searchHistory.value = [];
+    }
+  }
+});
+
+function saveSearch(item) {
+  const historyItem = {
+    id: Date.now(),
+    name: item.displayName,
+    condition: condition.value,
+    recommendation: item.options[condition.value],
+  };
+
+  searchHistory.value.unshift(historyItem);
+  searchHistory.value = searchHistory.value.slice(0, 5);
+
+  localStorage.setItem("reloopSearchHistory", JSON.stringify(searchHistory.value));
+}
+
+function clearHistory() {
+  searchHistory.value = [];
+  localStorage.removeItem("reloopSearchHistory");
+}
 
 const errors = reactive({
   itemName: "",
@@ -46,6 +78,8 @@ function validateForm() {
       category: matchedItem.category,
       recommendation: matchedItem.options[condition.value],
     };
+
+    saveSearch(matchedItem);
   } else {
     notFound.value = true;
   }
@@ -124,6 +158,37 @@ function validateForm() {
 
             <div v-if="notFound" class="alert alert-warning mt-4 mb-0" role="alert">
               We could not find this item. Try TV, mobile phone, clothing, battery or furniture.
+            </div>
+            <div v-if="searchHistory.length > 0" class="mt-5">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h5 mb-0">Recent Searches</h3>
+
+                <button type="button" class="btn btn-outline-danger btn-sm" @click="clearHistory">
+                  Clear History
+                </button>
+              </div>
+
+              <div class="list-group">
+                <div
+                  v-for="historyItem in searchHistory"
+                  :key="historyItem.id"
+                  class="list-group-item"
+                >
+                  <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+                    <div>
+                      <strong>{{ historyItem.name }}</strong>
+
+                      <span class="badge bg-secondary ms-2 text-capitalize">
+                        {{ historyItem.condition }}
+                      </span>
+                    </div>
+
+                    <small class="text-secondary">
+                      {{ historyItem.recommendation }}
+                    </small>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
