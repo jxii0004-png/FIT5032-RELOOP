@@ -1,5 +1,6 @@
 <script setup>
 import AppNavbar from "./components/AppNavbar.vue";
+import WasteFinder from "./components/WasteFinder.vue";
 </script>
 
 <template>
@@ -21,9 +22,6 @@ import AppNavbar from "./components/AppNavbar.vue";
       </div>
     </section>
 
-    <section id="finder" class="container py-5">
-      <h2 class="text-center">Waste Item Finder</h2>
-      <p class="text-center text-secondary">The search form will be added here.</p>
-    </section>
+    <WasteFinder />
   </main>
 </template>
