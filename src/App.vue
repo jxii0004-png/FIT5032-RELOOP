@@ -1,85 +1,29 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import AppNavbar from "./components/AppNavbar.vue";
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <AppNavbar />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+  <main>
+    <section class="bg-light py-5">
+      <div class="container py-5 text-center">
+        <p class="text-success fw-semibold mb-2">REUSE · REPAIR · RECYCLE</p>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
+        <h1 class="display-4 fw-bold">Find the next life for your unwanted items</h1>
 
-  <RouterView />
+        <p class="lead text-secondary mx-auto mt-3">
+          Search for an item and discover responsible options to reuse, donate, repair or recycle it
+          in Melbourne.
+        </p>
+
+        <a class="btn btn-success btn-lg mt-3" href="#finder"> Find an Item </a>
+      </div>
+    </section>
+
+    <section id="finder" class="container py-5">
+      <h2 class="text-center">Waste Item Finder</h2>
+      <p class="text-center text-secondary">The search form will be added here.</p>
+    </section>
+  </main>
 </template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
-</style>
