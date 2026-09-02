@@ -54,8 +54,8 @@ function validateForm() {
 
   if (!cleanedItemName) {
     errors.itemName = "Item name is required.";
-  } else if (!/[a-zA-Z0-9]/.test(cleanedItemName)) {
-    errors.itemName = "Item name must contain a letter or number.";
+  } else if (!/[a-zA-Z]/.test(cleanedItemName)) {
+    errors.itemName = "Item name must contain at least one letter.";
   } else if (cleanedItemName.length > 50) {
     errors.itemName = "Item name must not exceed 50 characters.";
   }
