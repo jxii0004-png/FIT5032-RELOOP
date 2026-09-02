@@ -87,7 +87,7 @@ function validateForm() {
 </script>
 
 <template>
-  <section id="finder" class="container py-5">
+  <section id="finder" class="finder-section container py-2 py-md-5">
     <div class="row justify-content-center">
       <div class="col-12 col-md-9 col-lg-7">
         <div class="card border-0 shadow-sm">
@@ -196,3 +196,17 @@ function validateForm() {
     </div>
   </section>
 </template>
+
+<style scoped>
+@media (max-width: 767.98px) {
+  .finder-section {
+    min-height: calc(100dvh - 56px);
+    display: flex;
+    align-items: center;
+  }
+
+  .finder-section > .row {
+    width: 100%;
+  }
+}
+</style>

@@ -7,7 +7,7 @@ import WasteFinder from "./components/WasteFinder.vue";
   <AppNavbar />
 
   <main>
-    <section class="bg-light py-5">
+    <section class="bg-light py-5 d-none d-md-block">
       <div class="container py-5 text-center">
         <p class="text-success fw-semibold mb-2">REUSE · REPAIR · RECYCLE</p>
 
