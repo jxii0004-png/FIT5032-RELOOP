@@ -1,13 +1,18 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
 import { wasteItems } from "../data/wasteItems";
+import { getCurrentUser } from "../services/auth";
 
 const itemName = ref("");
 const condition = ref("");
 const result = ref(null);
 const notFound = ref(false);
 const searchHistory = ref([]);
-
+const currentUser = getCurrentUser();
+const selectedRating = ref("");
+const averageRating = ref("0.0");
+const ratingCount = ref(0);
+const ratingMessage = ref("");
 onMounted(() => {
   const savedHistory = localStorage.getItem("reloopSearchHistory");
 
@@ -74,15 +79,80 @@ function validateForm() {
 
   if (matchedItem) {
     result.value = {
+      itemId: matchedItem.id,
       displayName: matchedItem.displayName,
       category: matchedItem.category,
       recommendation: matchedItem.options[condition.value],
     };
 
+    updateRatingDetails(matchedItem.id);
+
     saveSearch(matchedItem);
   } else {
     notFound.value = true;
   }
+}
+function getRatings() {
+  try {
+    return JSON.parse(localStorage.getItem("reloopRatings")) || [];
+  } catch {
+    return [];
+  }
+}
+
+function updateRatingDetails(itemId) {
+  const itemRatings = getRatings().filter((rating) => rating.itemId === itemId);
+
+  ratingCount.value = itemRatings.length;
+
+  if (itemRatings.length === 0) {
+    averageRating.value = "0.0";
+  } else {
+    const total = itemRatings.reduce((sum, rating) => sum + rating.score, 0);
+
+    averageRating.value = (total / itemRatings.length).toFixed(1);
+  }
+
+  const existingRating = itemRatings.find((rating) => rating.userId === currentUser?.id);
+
+  selectedRating.value = existingRating ? String(existingRating.score) : "";
+}
+
+function submitRating() {
+  ratingMessage.value = "";
+
+  if (!currentUser) {
+    ratingMessage.value = "Please log in before rating.";
+    return;
+  }
+
+  if (!selectedRating.value) {
+    ratingMessage.value = "Please select a rating.";
+    return;
+  }
+
+  const ratings = getRatings();
+
+  const existingIndex = ratings.findIndex(
+    (rating) => rating.itemId === result.value.itemId && rating.userId === currentUser.id,
+  );
+
+  const newRating = {
+    itemId: result.value.itemId,
+    userId: currentUser.id,
+    score: Number(selectedRating.value),
+  };
+
+  if (existingIndex >= 0) {
+    ratings[existingIndex] = newRating;
+  } else {
+    ratings.push(newRating);
+  }
+
+  localStorage.setItem("reloopRatings", JSON.stringify(ratings));
+
+  ratingMessage.value = "Rating submitted successfully.";
+  updateRatingDetails(result.value.itemId);
 }
 </script>
 
@@ -150,9 +220,48 @@ function validateForm() {
 
                 <p class="mb-2"><strong>Category:</strong> {{ result.category }}</p>
 
-                <p class="mb-0">
+                <p class="mb-3">
                   {{ result.recommendation }}
                 </p>
+                <hr />
+
+                <h4 class="h6">Was this recommendation helpful?</h4>
+
+                <p class="mb-3">
+                  <strong>Average rating:</strong>
+                  {{ averageRating }} / 5
+                  <span class="text-secondary"> ({{ ratingCount }} ratings) </span>
+                </p>
+
+                <div v-if="currentUser">
+                  <div class="d-flex flex-column flex-sm-row gap-2">
+                    <select
+                      v-model="selectedRating"
+                      class="form-select"
+                      aria-label="Select a rating"
+                    >
+                      <option value="" disabled>Select a rating</option>
+                      <option value="1">1 - Poor</option>
+                      <option value="2">2 - Fair</option>
+                      <option value="3">3 - Good</option>
+                      <option value="4">4 - Very good</option>
+                      <option value="5">5 - Excellent</option>
+                    </select>
+
+                    <button type="button" class="btn btn-success" @click="submitRating">
+                      Submit Rating
+                    </button>
+                  </div>
+                </div>
+
+                <p v-else class="mb-0">
+                  <RouterLink to="/login">Login</RouterLink>
+                  to submit a rating.
+                </p>
+
+                <div v-if="ratingMessage" class="alert alert-info mt-3 mb-0">
+                  {{ ratingMessage }}
+                </div>
               </div>
             </div>
 
