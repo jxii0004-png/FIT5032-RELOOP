@@ -13,13 +13,20 @@ async function register() {
   errorMessage.value = "";
   successMessage.value = "";
 
+  const cleanedName = name.value.trim();
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!emailPattern.test(email.value)) {
-    errorMessage.value = "Please enter a valid email.";
+  if (!cleanedName) {
+    errorMessage.value = "Name is required.";
     return;
   }
-  if (!email.value.includes("@")) {
+
+  if (/[<>]/.test(cleanedName)) {
+    errorMessage.value = "Name contains unsafe characters.";
+    return;
+  }
+
+  if (!emailPattern.test(email.value.trim())) {
     errorMessage.value = "Please enter a valid email.";
     return;
   }
@@ -35,7 +42,7 @@ async function register() {
   }
 
   try {
-    await registerUser(name.value, email.value, password.value);
+    await registerUser(cleanedName, email.value, password.value);
 
     successMessage.value = "Registration successful.";
     name.value = "";

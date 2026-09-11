@@ -59,6 +59,8 @@ function validateForm() {
 
   if (!cleanedItemName) {
     errors.itemName = "Item name is required.";
+  } else if (cleanedItemName.includes("<") || cleanedItemName.includes(">")) {
+    errors.itemName = "Item name contains unsafe characters.";
   } else if (!/[a-zA-Z]/.test(cleanedItemName)) {
     errors.itemName = "Item name must contain at least one letter.";
   } else if (cleanedItemName.length > 50) {
