@@ -77,6 +77,9 @@ function logout() {
 
             <ul class="dropdown-menu dropdown-menu-end">
               <template v-if="currentUser">
+                <li v-if="currentUser.role === 'admin'">
+                  <RouterLink class="dropdown-item" to="/admin"> Admin Dashboard </RouterLink>
+                </li>
                 <li>
                   <span class="dropdown-item-text"> Role: {{ currentUser.role }} </span>
                 </li>

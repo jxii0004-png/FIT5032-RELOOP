@@ -107,3 +107,12 @@ export async function createDefaultAdmin() {
 
   saveUsers(users);
 }
+
+export function getAllUsers() {
+  return getUsers().map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  }));
+}

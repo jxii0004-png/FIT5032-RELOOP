@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
+import { getCurrentUser } from "../services/auth";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,6 +9,15 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: HomeView,
+    },
+    {
+      path: "/admin",
+      name: "admin",
+      component: () => import("../views/AdminView.vue"),
+      meta: {
+        requiresAuth: true,
+        role: "admin",
+      },
     },
     {
       path: "/register",
@@ -30,4 +40,15 @@ const router = createRouter({
   ],
 });
 
+router.beforeEach((to) => {
+  const currentUser = getCurrentUser();
+
+  if (to.meta.requiresAuth && !currentUser) {
+    return "/login";
+  }
+
+  if (to.meta.role && currentUser?.role !== to.meta.role) {
+    return "/";
+  }
+});
 export default router;
