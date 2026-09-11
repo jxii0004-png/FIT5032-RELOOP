@@ -1,7 +1,26 @@
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { getCurrentUser, logoutUser } from "../services/auth";
+
+const route = useRoute();
+const router = useRouter();
 
 const showSearch = ref(false);
+const currentUser = ref(getCurrentUser());
+
+watch(
+  () => route.fullPath,
+  () => {
+    currentUser.value = getCurrentUser();
+  },
+);
+
+function logout() {
+  logoutUser();
+  currentUser.value = null;
+  router.push("/login");
+}
 </script>
 
 <template>
@@ -53,19 +72,31 @@ const showSearch = ref(false);
               type="button"
               data-bs-toggle="dropdown"
             >
-              Account
+              {{ currentUser ? currentUser.name : "Account" }}
             </button>
 
             <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <a class="dropdown-item" href="#">My Account</a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="#">Saved Items</a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="#">Login</a>
-              </li>
+              <template v-if="currentUser">
+                <li>
+                  <span class="dropdown-item-text"> Role: {{ currentUser.role }} </span>
+                </li>
+
+                <li><hr class="dropdown-divider" /></li>
+
+                <li>
+                  <button type="button" class="dropdown-item" @click="logout">Logout</button>
+                </li>
+              </template>
+
+              <template v-else>
+                <li>
+                  <RouterLink class="dropdown-item" to="/login"> Login </RouterLink>
+                </li>
+
+                <li>
+                  <RouterLink class="dropdown-item" to="/register"> Register </RouterLink>
+                </li>
+              </template>
             </ul>
           </li>
         </ul>
