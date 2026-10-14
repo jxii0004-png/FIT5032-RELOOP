@@ -2,6 +2,24 @@
 import { ref } from "vue";
 import { getAllUsers } from "../services/auth";
 import { wasteItems } from "../data/wasteItems";
+import InteractiveTable from "../components/InteractiveTable.vue";
+
+const userColumns = [
+  { key: "name", label: "Name" },
+  { key: "email", label: "Email" },
+  { key: "role", label: "Role" },
+];
+const itemColumns = [
+  { key: "displayName", label: "Item" },
+  { key: "category", label: "Category" },
+  { key: "aliases", label: "Search terms" },
+  { key: "recommendation", label: "Broken item recommendation" },
+];
+const itemRows = wasteItems.map((item) => ({
+  ...item,
+  aliases: item.names.join(", "),
+  recommendation: item.options.broken,
+}));
 
 const users = ref(getAllUsers());
 
@@ -50,37 +68,7 @@ const itemCount = ref(wasteItems.length);
       </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-      <div class="card-body">
-        <h2 class="h4 mb-3">Registered Users</h2>
-
-        <div class="table-responsive">
-          <table class="table align-middle">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr v-for="user in users" :key="user.id">
-                <td>{{ user.name }}</td>
-                <td>{{ user.email }}</td>
-                <td>
-                  <span
-                    class="badge"
-                    :class="user.role === 'admin' ? 'bg-success' : 'bg-secondary'"
-                  >
-                    {{ user.role }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <InteractiveTable title="Registered Users" :columns="userColumns" :rows="users" />
+    <InteractiveTable title="Waste Item Directory" :columns="itemColumns" :rows="itemRows" />
   </main>
 </template>
