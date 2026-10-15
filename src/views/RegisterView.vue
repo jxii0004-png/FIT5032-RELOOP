@@ -8,8 +8,10 @@ const password = ref("");
 const confirmPassword = ref("");
 const errorMessage = ref("");
 const successMessage = ref("");
+const submitting = ref(false);
 
 async function register() {
+  if (submitting.value) return;
   errorMessage.value = "";
   successMessage.value = "";
 
@@ -41,17 +43,18 @@ async function register() {
     return;
   }
 
+  submitting.value = true;
   try {
     await registerUser(cleanedName, email.value, password.value);
 
-    successMessage.value = "Registration successful.";
+    successMessage.value = "Registration successful. You are now signed in.";
     name.value = "";
     email.value = "";
     password.value = "";
     confirmPassword.value = "";
   } catch (error) {
     errorMessage.value = error.message;
-  }
+  } finally { submitting.value = false; }
 }
 </script>
 
@@ -124,7 +127,7 @@ async function register() {
                 {{ successMessage }}
               </div>
 
-              <button type="submit" class="btn btn-success w-100">Register</button>
+              <button type="submit" class="btn btn-success w-100" :disabled="submitting">{{ submitting ? 'Creating account…' : 'Register' }}</button>
             </form>
           </div>
         </div>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { getAllUsers } from "../services/auth";
 import { wasteItems } from "../data/wasteItems";
 import InteractiveTable from "../components/InteractiveTable.vue";
@@ -7,7 +7,6 @@ import InteractiveTable from "../components/InteractiveTable.vue";
 const userColumns = [
   { key: "name", label: "Name" },
   { key: "email", label: "Email" },
-  { key: "role", label: "Role" },
 ];
 const itemColumns = [
   { key: "displayName", label: "Item" },
@@ -21,7 +20,17 @@ const itemRows = wasteItems.map((item) => ({
   recommendation: item.options.broken,
 }));
 
-const users = ref(getAllUsers());
+const users = ref([]);
+const loading = ref(true);
+const loadError = ref("");
+async function loadUsers() {
+  loading.value = true;
+  loadError.value = "";
+  try { users.value = await getAllUsers(); }
+  catch { loadError.value = "Unable to load users. Please try again or contact the site administrator."; }
+  finally { loading.value = false; }
+}
+onMounted(loadUsers);
 
 let savedSearches;
 
@@ -44,7 +53,7 @@ const itemCount = ref(wasteItems.length);
         <div class="card border-0 bg-success text-white shadow-sm">
           <div class="card-body">
             <p class="mb-1">Users</p>
-            <h2 class="mb-0">{{ users.length }}</h2>
+            <h2 class="mb-0">{{ loading || loadError ? '—' : users.length }}</h2>
           </div>
         </div>
       </div>
@@ -68,7 +77,11 @@ const itemCount = ref(wasteItems.length);
       </div>
     </div>
 
-    <InteractiveTable title="Registered Users" :columns="userColumns" :rows="users" />
+    <p v-if="loading" role="status">Loading registered users…</p>
+    <div v-else-if="loadError" class="alert alert-danger" role="alert">
+      {{ loadError }} <button type="button" class="btn btn-outline-danger btn-sm" @click="loadUsers">Retry</button>
+    </div>
+    <InteractiveTable v-else title="Registered Users" :columns="userColumns" :rows="users" />
     <InteractiveTable title="Waste Item Directory" :columns="itemColumns" :rows="itemRows" />
   </main>
 </template>

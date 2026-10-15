@@ -1,25 +1,18 @@
 <script setup>
-import { ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { getCurrentUser, logoutUser } from "../services/auth";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { currentUser, logoutUser } from "../services/auth";
 
-const route = useRoute();
 const router = useRouter();
 
 const showSearch = ref(false);
-const currentUser = ref(getCurrentUser());
-
-watch(
-  () => route.fullPath,
-  () => {
-    currentUser.value = getCurrentUser();
-  },
-);
-
-function logout() {
-  logoutUser();
-  currentUser.value = null;
-  router.push("/login");
+const logoutError = ref("");
+async function logout() {
+  logoutError.value = "";
+  try {
+    await logoutUser();
+    router.push("/login");
+  } catch (error) { logoutError.value = error.message; }
 }
 </script>
 
@@ -53,11 +46,11 @@ function logout() {
       <div id="mainNavbar" class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto align-items-lg-center">
           <li class="nav-item">
-            <a class="nav-link active" href="#">Home</a>
+            <RouterLink class="nav-link" to="/">Home</RouterLink>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="#finder">Find an Item</a>
+            <RouterLink class="nav-link" to="/#finder">Find an Item</RouterLink>
           </li>
 
           <li class="nav-item">
@@ -115,6 +108,7 @@ function logout() {
       </div>
     </div>
   </nav>
+  <p v-if="logoutError" class="alert alert-danger" role="alert">{{ logoutError }}</p>
 </template>
 
 <style scoped>

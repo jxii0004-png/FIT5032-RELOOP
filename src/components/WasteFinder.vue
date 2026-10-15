@@ -1,14 +1,13 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
 import { wasteItems } from "../data/wasteItems";
-import { getCurrentUser } from "../services/auth";
+import { currentUser } from "../services/auth";
 
 const itemName = ref("");
 const condition = ref("");
 const result = ref(null);
 const notFound = ref(false);
 const searchHistory = ref([]);
-const currentUser = getCurrentUser();
 const selectedRating = ref("");
 const averageRating = ref("0.0");
 const ratingCount = ref(0);
@@ -115,7 +114,7 @@ function updateRatingDetails(itemId) {
     averageRating.value = (total / itemRatings.length).toFixed(1);
   }
 
-  const existingRating = itemRatings.find((rating) => rating.userId === currentUser?.id);
+  const existingRating = itemRatings.find((rating) => rating.userId === currentUser.value?.id);
 
   selectedRating.value = existingRating ? String(existingRating.score) : "";
 }
@@ -123,7 +122,7 @@ function updateRatingDetails(itemId) {
 function submitRating() {
   ratingMessage.value = "";
 
-  if (!currentUser) {
+  if (!currentUser.value) {
     ratingMessage.value = "Please log in before rating.";
     return;
   }
@@ -136,12 +135,12 @@ function submitRating() {
   const ratings = getRatings();
 
   const existingIndex = ratings.findIndex(
-    (rating) => rating.itemId === result.value.itemId && rating.userId === currentUser.id,
+    (rating) => rating.itemId === result.value.itemId && rating.userId === currentUser.value.id,
   );
 
   const newRating = {
     itemId: result.value.itemId,
-    userId: currentUser.id,
+    userId: currentUser.value.id,
     score: Number(selectedRating.value),
   };
 

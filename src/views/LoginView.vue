@@ -1,20 +1,23 @@
 <script setup>
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { loginUser } from "../services/auth";
 
 const router = useRouter();
+const route = useRoute();
+const submitting = ref(false);
 
 const email = ref("");
 const password = ref("");
 const errorMessage = ref("");
 
 async function login() {
+  if (submitting.value) return;
   errorMessage.value = "";
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!emailPattern.test(email.value)) {
+  if (!emailPattern.test(email.value.trim())) {
     errorMessage.value = "Please enter a valid email.";
     return;
   }
@@ -24,12 +27,13 @@ async function login() {
     return;
   }
 
+  submitting.value = true;
   try {
     await loginUser(email.value, password.value);
-    router.push("/");
+    await router.push(route.query.redirect === "/admin" ? "/admin" : "/");
   } catch (error) {
     errorMessage.value = error.message;
-  }
+  } finally { submitting.value = false; }
 }
 </script>
 
@@ -72,7 +76,7 @@ async function login() {
                 {{ errorMessage }}
               </div>
 
-              <button type="submit" class="btn btn-success w-100">Login</button>
+              <button type="submit" class="btn btn-success w-100" :disabled="submitting">{{ submitting ? 'Signing in…' : 'Login' }}</button>
 
               <p class="text-center mt-3 mb-0">
                 Do not have an account?
