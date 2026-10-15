@@ -30,7 +30,7 @@ async function login() {
   submitting.value = true;
   try {
     await loginUser(email.value, password.value);
-    await router.push(route.query.redirect === "/admin" ? "/admin" : "/");
+    await router.push(["/admin", "/email"].includes(route.query.redirect) ? route.query.redirect : "/");
   } catch (error) {
     errorMessage.value = error.message;
   } finally { submitting.value = false; }

@@ -13,6 +13,9 @@ dist
 dist-ssr
 coverage
 *.local
+functions/.env*
+functions/.secret*
+.firebase/
 
 # Editor directories and files
 .vscode/*

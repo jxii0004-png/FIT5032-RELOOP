@@ -47,6 +47,7 @@ const itemCount = ref(wasteItems.length);
 <template>
   <main class="container py-5">
     <h1 class="mb-4">Admin Dashboard</h1>
+    <RouterLink to="/email" class="btn btn-success mb-4">Send email with attachment</RouterLink>
 
     <div class="row g-3 mb-5">
       <div class="col-12 col-md-4">

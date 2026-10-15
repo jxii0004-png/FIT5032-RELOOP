@@ -73,6 +73,9 @@ async function logout() {
                 <li v-if="currentUser.role === 'admin'">
                   <RouterLink class="dropdown-item" to="/admin"> Admin Dashboard </RouterLink>
                 </li>
+                <li v-if="currentUser.role === 'admin'">
+                  <RouterLink class="dropdown-item" to="/email">Send Email</RouterLink>
+                </li>
                 <li>
                   <span class="dropdown-item-text"> Role: {{ currentUser.role }} </span>
                 </li>
