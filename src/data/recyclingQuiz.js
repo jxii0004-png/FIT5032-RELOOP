@@ -1,0 +1,10 @@
+const reuseSource = 'https://www.environment.vic.gov.au/household-waste-recycling/reduce-waste/reuse-repair';
+const ewasteSource = 'https://www.environment.vic.gov.au/household-waste-recycling/ewaste';
+export const quizQuestions = [
+  { question: 'A working television is no longer needed. What is a useful first option?', options: ['Put it in the rubbish bin', 'Offer it for reuse if safe and accepted', 'Break it into smaller pieces'], answer: 1, explanation: 'A safe, working product may be useful to someone else. Check donation acceptance before taking it in.', source: reuseSource },
+  { question: 'Where should unwanted household batteries go?', options: ['A suitable battery collection service', 'The household recycling bin', 'The garden compost'], answer: 0, explanation: 'Batteries need a suitable collection service. Check accepted battery types and handling instructions with that service.', source: ewasteSource },
+  { question: 'A jacket has minor damage. What could extend its life?', options: ['Replace it immediately', 'Put it with household paper recycling', 'Repair or alter it'], answer: 2, explanation: 'Repairing or altering clothing can keep it in use for longer.', source: reuseSource },
+  { question: 'Which of these is electronic waste?', options: ['A cardboard box', 'An unwanted laptop', 'A cotton shirt'], answer: 1, explanation: 'Unwanted items with a battery, plug or cord are electronic waste and need an appropriate collection option.', source: ewasteSource },
+  { question: 'What should you check before donating an item?', options: ['Whether it is clean, safe and accepted by the recipient', 'Only whether you can carry it', 'Nothing: every item can be donated'], answer: 0, explanation: 'Donate suitable items and check the recipient accepts them before you visit.', source: reuseSource },
+];
+export function scoreQuiz(answers) { return quizQuestions.reduce((score, question, index) => score + (Number(answers[index]) === question.answer && answers[index] !== '' && answers[index] != null ? 1 : 0), 0); }

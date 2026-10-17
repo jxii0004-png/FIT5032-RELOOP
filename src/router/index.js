@@ -5,6 +5,11 @@ import { authReady, getCurrentUser } from "../services/auth";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    { path: "/plans", name: "plans", component: () => import("../views/PlansView.vue"), meta: { requiresAuth: true } },
+    { path: "/impact", name: "impact", component: () => import("../views/ImpactView.vue"), meta: { requiresAuth: true } },
+    { path: "/calendar", name: "calendar", component: () => import("../views/CalendarView.vue"), meta: { requiresAuth: true } },
+    { path: "/quiz", name: "quiz", component: () => import("../views/QuizView.vue") },
+    { path: "/locations", name: "locations", component: () => import("../views/LocationsView.vue") },
     {
       path: "/email",
       name: "email",

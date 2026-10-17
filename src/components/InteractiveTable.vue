@@ -1,11 +1,36 @@
 <script setup>
-import { computed, reactive, ref, watch } from "vue";
+import { computed, reactive, ref, useId, watch } from "vue";
+import { focusElement } from "../services/accessibility";
+import { downloadCsv, printPdf } from "../services/tableExport";
+const statusId = `table-status-${useId()}`;
+function changePage(direction) {
+  page.value += direction;
+  focusElement(statusId);
+}
 
 const props = defineProps({
   title: { type: String, required: true },
   columns: { type: Array, required: true },
   rows: { type: Array, required: true },
 });
+const exportMessage = ref("");
+const exportError = ref("");
+const exporting = ref(false);
+async function exportRows(format) {
+  exportMessage.value = "";
+  exportError.value = "";
+  exporting.value = true;
+  try {
+    const rows = [...filteredRows.value];
+    if (format === "CSV") downloadCsv(props.title, props.columns, rows);
+    else await printPdf(props.title, props.columns, rows);
+    exportMessage.value = format === "CSV"
+      ? `CSV download started: ${rows.length} matching records.`
+      : `PDF report opened: ${rows.length} matching records. Choose Save as PDF in the print dialog.`;
+  } catch (error) {
+    exportError.value = error.message || "Export failed. Please try again.";
+  } finally { exporting.value = false; }
+}
 const search = ref("");
 const filters = reactive({});
 const sortKey = ref("");
@@ -61,14 +86,21 @@ function reset() {
         </label>
         <button type="button" class="btn btn-outline-secondary" @click="reset">Reset</button>
       </div>
-      <div class="table-responsive">
+      <div class="d-flex flex-wrap gap-2 mb-2">
+        <button type="button" class="btn btn-outline-success btn-sm" :disabled="!filteredRows.length || exporting" @click="exportRows('CSV')">Download CSV</button>
+        <button type="button" class="btn btn-outline-success btn-sm" :disabled="!filteredRows.length || exporting" @click="exportRows('PDF')">Export PDF</button>
+      </div>
+      <p class="small text-secondary">Exports include all matching records across all pages. For PDF, select Save as PDF in the print dialog.</p>
+      <p class="small" role="status">{{ exportMessage }}</p>
+      <p v-if="exportError" class="alert alert-danger" role="alert">{{ exportError }}</p>
+      <div class="table-responsive" role="region" :aria-label="`${title} table, scroll horizontally if needed`" tabindex="0">
         <table class="table align-middle">
           <caption class="visually-hidden">{{ title }}. Search, filter by column, or select a column heading to sort. Ten rows per page.</caption>
           <thead>
             <tr>
               <th v-for="column in columns" :key="column.key" scope="col"
                 :aria-sort="sortKey === column.key ? (ascending ? 'ascending' : 'descending') : 'none'">
-                <button type="button" class="btn btn-link p-0 text-start text-dark fw-semibold" @click="sortBy(column.key)">
+                <button type="button" class="btn btn-link p-0 text-start text-dark fw-semibold" :aria-label="`Sort ${column.label} ${sortKey === column.key && ascending ? 'descending' : 'ascending'}`" @click="sortBy(column.key)">
                   {{ column.label }} <span aria-hidden="true">{{ sortKey === column.key ? (ascending ? '↑' : '↓') : '↕' }}</span>
                 </button>
               </th>
@@ -89,11 +121,11 @@ function reset() {
         </table>
       </div>
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <p class="mb-0 text-secondary" role="status">Showing {{ firstRow }}–{{ lastRow }} of {{ filteredRows.length }} records (10 per page)</p>
+        <p :id="statusId" tabindex="-1" class="mb-0 text-secondary" role="status">Showing {{ firstRow }}–{{ lastRow }} of {{ filteredRows.length }} records (10 per page)</p>
         <nav :aria-label="`${title} pagination`" class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-outline-success btn-sm" :disabled="page === 1" @click="page--">Previous</button>
+          <button type="button" class="btn btn-outline-success btn-sm" :disabled="page === 1" @click="changePage(-1)">Previous</button>
           <span>Page {{ page }} of {{ pageCount }}</span>
-          <button type="button" class="btn btn-outline-success btn-sm" :disabled="page >= pageCount" @click="page++">Next</button>
+          <button type="button" class="btn btn-outline-success btn-sm" :disabled="page >= pageCount" @click="changePage(1)">Next</button>
         </nav>
       </div>
     </div>

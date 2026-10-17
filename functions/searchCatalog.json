@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "displayName": "Television",
+    "category": "Electronic waste"
+  },
+  {
+    "id": 2,
+    "displayName": "Mobile Phone",
+    "category": "Electronic waste"
+  },
+  {
+    "id": 3,
+    "displayName": "Clothing",
+    "category": "Textiles"
+  },
+  {
+    "id": 4,
+    "displayName": "Battery",
+    "category": "Hazardous waste"
+  },
+  {
+    "id": 5,
+    "displayName": "Furniture",
+    "category": "Household item"
+  },
+  {
+    "id": 6,
+    "displayName": "Laptop",
+    "category": "Electronic waste"
+  },
+  {
+    "id": 7,
+    "displayName": "Computer Monitor",
+    "category": "Electronic waste"
+  },
+  {
+    "id": 8,
+    "displayName": "Printer",
+    "category": "Electronic waste"
+  },
+  {
+    "id": 9,
+    "displayName": "Bicycle",
+    "category": "Household item"
+  },
+  {
+    "id": 10,
+    "displayName": "Books",
+    "category": "Paper products"
+  },
+  {
+    "id": 11,
+    "displayName": "Cardboard Box",
+    "category": "Paper products"
+  },
+  {
+    "id": 12,
+    "displayName": "Shoes",
+    "category": "Textiles"
+  }
+]

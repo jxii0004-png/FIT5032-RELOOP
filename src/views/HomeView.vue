@@ -3,7 +3,8 @@ import WasteFinder from "../components/WasteFinder.vue";
 </script>
 
 <template>
-  <main>
+  <main id="main-content" tabindex="-1">
+    <h1 class="visually-hidden d-md-none">Find the next life for your unwanted items</h1>
     <section class="bg-light py-5 d-none d-md-block">
       <div class="container py-5 text-center">
         <p class="text-success fw-semibold mb-2">REUSE · REPAIR · RECYCLE</p>

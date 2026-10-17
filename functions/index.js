@@ -1,12 +1,26 @@
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret, defineString } from "firebase-functions/params";
 import { deliverMail, validateMail, MailError } from "./mail.js";
+import { validateSearch, recordSearch, SearchError } from "./search.js";
 initializeApp();
 const database = getFirestore();
 const sendgridKey = defineSecret("SENDGRID_API_KEY");
 const sender = defineString("SENDGRID_FROM_EMAIL");
+export const trackSearch = onCall({
+  region: "australia-southeast1", maxInstances: 2, timeoutSeconds: 30,
+  cors: ["https://reloop-f31e7.web.app", "https://reloop-f31e7.firebaseapp.com", "http://localhost:5173", "http://127.0.0.1:5173"],
+}, async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Sign in to record search activity.");
+  try {
+    const search = validateSearch(request.data);
+    return await recordSearch(database, request.auth.uid, search, FieldValue);
+  } catch (error) {
+    if (error instanceof SearchError) throw new HttpsError(error.code, error.message);
+    throw new HttpsError("internal", "Search statistics could not be updated.");
+  }
+});
 export const sendEmail = onCall({
   region: "australia-southeast1", secrets: [sendgridKey], maxInstances: 2, timeoutSeconds: 45,
   cors: ["https://reloop-f31e7.web.app", "https://reloop-f31e7.firebaseapp.com", "http://localhost:5173", "http://127.0.0.1:5173"],

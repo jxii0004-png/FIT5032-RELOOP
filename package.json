@@ -14,12 +14,14 @@
   "dependencies": {
     "bootstrap": "^5.3.8",
     "firebase": "^13.0.0",
+    "mapbox-gl": "^3.33.0",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@vitejs/plugin-vue": "^6.0.8",
+    "axe-core": "^4.14.0",
     "eslint": "^10.7.0",
     "eslint-plugin-oxlint": "~1.73.0",
     "eslint-plugin-vue": "~10.9.2",

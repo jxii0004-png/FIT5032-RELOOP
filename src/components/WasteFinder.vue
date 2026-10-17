@@ -2,6 +2,12 @@
 import { onMounted, reactive, ref } from "vue";
 import { wasteItems } from "../data/wasteItems";
 import { currentUser } from "../services/auth";
+import { trackSearch } from "../services/searchStats";
+import { focusElement } from "../services/accessibility";
+import { readLocalArray, writeLocalArray, clearLocalArray, validSearchRecord, validRatingRecord } from "../services/localRecords";
+const storageMessage = ref("");
+const trackingMessage = ref("");
+let searchVersion = 0;
 
 const itemName = ref("");
 const condition = ref("");
@@ -13,17 +19,8 @@ const averageRating = ref("0.0");
 const ratingCount = ref(0);
 const ratingMessage = ref("");
 onMounted(() => {
-  const savedHistory = localStorage.getItem("reloopSearchHistory");
-
-  if (savedHistory) {
-    try {
-      searchHistory.value = JSON.parse(savedHistory);
-    } catch {
-      searchHistory.value = [];
-    }
-  }
+  searchHistory.value = readLocalArray("reloopSearchHistory", validSearchRecord).slice(0, 5);
 });
-
 function saveSearch(item) {
   const historyItem = {
     id: Date.now(),
@@ -35,12 +32,12 @@ function saveSearch(item) {
   searchHistory.value.unshift(historyItem);
   searchHistory.value = searchHistory.value.slice(0, 5);
 
-  localStorage.setItem("reloopSearchHistory", JSON.stringify(searchHistory.value));
+  storageMessage.value = writeLocalArray("reloopSearchHistory", searchHistory.value) ? "" : "Your result is ready, but this browser could not save recent history.";
 }
 
 function clearHistory() {
   searchHistory.value = [];
-  localStorage.removeItem("reloopSearchHistory");
+  storageMessage.value = clearLocalArray("reloopSearchHistory") ? "History cleared." : "History cleared for this page, but saved browser history could not be removed.";
 }
 
 const errors = reactive({
@@ -49,6 +46,8 @@ const errors = reactive({
 });
 
 function validateForm() {
+  const version = ++searchVersion;
+  trackingMessage.value = "";
   errors.itemName = "";
   errors.condition = "";
   result.value = null;
@@ -71,6 +70,7 @@ function validateForm() {
   }
 
   if (errors.itemName || errors.condition) {
+    focusElement(errors.itemName ? "itemName" : "condition");
     return;
   }
 
@@ -89,18 +89,21 @@ function validateForm() {
     updateRatingDetails(matchedItem.id);
 
     saveSearch(matchedItem);
+    if (currentUser.value) {
+      trackingMessage.value = "Updating search statistics…";
+      trackSearch(matchedItem.id, condition.value).then(() => {
+        if (version === searchVersion) trackingMessage.value = "Search included in site statistics.";
+      }).catch(() => {
+        if (version === searchVersion) trackingMessage.value = "Your result is ready, but site statistics could not be updated.";
+      });
+    }
   } else {
     notFound.value = true;
   }
 }
 function getRatings() {
-  try {
-    return JSON.parse(localStorage.getItem("reloopRatings")) || [];
-  } catch {
-    return [];
-  }
+  return readLocalArray("reloopRatings", validRatingRecord);
 }
-
 function updateRatingDetails(itemId) {
   const itemRatings = getRatings().filter((rating) => rating.itemId === itemId);
 
@@ -127,7 +130,7 @@ function submitRating() {
     return;
   }
 
-  if (!selectedRating.value) {
+  if (![1, 2, 3, 4, 5].includes(Number(selectedRating.value))) {
     ratingMessage.value = "Please select a rating.";
     return;
   }
@@ -150,26 +153,27 @@ function submitRating() {
     ratings.push(newRating);
   }
 
-  localStorage.setItem("reloopRatings", JSON.stringify(ratings));
+  const saved = writeLocalArray("reloopRatings", ratings);
 
-  ratingMessage.value = "Rating submitted successfully.";
+  ratingMessage.value = saved ? "Rating saved on this device." : "Your browser could not save the rating. Please try again.";
   updateRatingDetails(result.value.itemId);
 }
 </script>
 
 <template>
-  <section id="finder" class="finder-section container py-2 py-md-5">
+  <section id="finder" tabindex="-1" aria-labelledby="finder-heading" class="finder-section container py-2 py-md-5">
     <div class="row justify-content-center">
       <div class="col-12 col-md-9 col-lg-7">
         <div class="card border-0 shadow-sm">
           <div class="card-body p-4 p-md-5">
-            <h2 class="text-center fw-bold">Waste Item Finder</h2>
+            <h2 id="finder-heading" class="text-center fw-bold">Waste Item Finder</h2>
 
             <p class="text-center text-secondary mb-4">
               Enter an unwanted item to find a responsible next step.
             </p>
 
             <form novalidate @submit.prevent="validateForm">
+              <p class="small text-secondary">Successful searches by signed-in users contribute to site statistics. Your recent history is stored on this device.</p>
               <div class="mb-3">
                 <label for="itemName" class="form-label"> Item name </label>
 
@@ -179,12 +183,15 @@ function submitRating() {
                   type="text"
                   maxlength="50"
                   class="form-control"
+                  required
+                  :aria-invalid="Boolean(errors.itemName)"
+                  :aria-describedby="errors.itemName ? 'item-name-error' : undefined"
                   :class="{ 'is-invalid': errors.itemName }"
                   placeholder="For example, mobile phone"
                   @input="errors.itemName = ''"
                 />
 
-                <div class="invalid-feedback">
+                <div id="item-name-error" class="invalid-feedback">
                   {{ errors.itemName }}
                 </div>
               </div>
@@ -196,6 +203,9 @@ function submitRating() {
                   id="condition"
                   v-model="condition"
                   class="form-select"
+                  required
+                  :aria-invalid="Boolean(errors.condition)"
+                  :aria-describedby="errors.condition ? 'condition-error' : undefined"
                   :class="{ 'is-invalid': errors.condition }"
                   @change="errors.condition = ''"
                 >
@@ -205,19 +215,24 @@ function submitRating() {
                   <option value="broken">Broken</option>
                 </select>
 
-                <div class="invalid-feedback">
+                <div id="condition-error" class="invalid-feedback">
                   {{ errors.condition }}
                 </div>
               </div>
 
               <button type="submit" class="btn btn-success w-100">Find the Best Option</button>
             </form>
+            <p class="small text-secondary" role="status">{{ storageMessage }}</p>
+            <p class="visually-hidden" role="status">{{ result ? `${result.displayName}: ${result.recommendation}` : '' }}</p>
+            <p v-if="trackingMessage" class="small text-secondary mt-3" role="status">{{ trackingMessage }}</p>
 
             <div v-if="result" class="card bg-light border-success mt-4">
               <div class="card-body">
                 <p class="text-success fw-semibold mb-1">Recommended next step</p>
 
                 <h3 class="h5">{{ result.displayName }}</h3>
+                <RouterLink to="/locations" class="btn btn-outline-success btn-sm mb-3 me-2">Find recycling locations and routes</RouterLink>
+                <RouterLink :to="{ path: '/plans', query: { item: result.itemId } }" class="btn btn-outline-success btn-sm mb-3">Add to my recycling plans</RouterLink>
 
                 <p class="mb-2"><strong>Category:</strong> {{ result.category }}</p>
 
@@ -260,7 +275,7 @@ function submitRating() {
                   to submit a rating.
                 </p>
 
-                <div v-if="ratingMessage" class="alert alert-info mt-3 mb-0">
+                <div v-if="ratingMessage" class="alert alert-info mt-3 mb-0" role="status">
                   {{ ratingMessage }}
                 </div>
               </div>
